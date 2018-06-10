@@ -17,7 +17,7 @@ public:
     explicit OpenFile(QWidget *parent = 0);
     ~OpenFile();
      QString  fname, fpath;
-     QStringList fList;
+     QStringList imageList;
      QTreeView * masterTree, *newTree;
 
 
@@ -27,8 +27,8 @@ private slots:
       void on_clicked(const QModelIndex &);
       void addedNewTree(QFileSystemModel *,const QModelIndex );
 
-private:
 
+private:
     QFileSystemModel *lDir, *tDir;
     QDir * dir;
     Ui::OpenFile *ui;

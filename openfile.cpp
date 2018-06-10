@@ -43,6 +43,7 @@ void OpenFile::on_listView_clicked(const QModelIndex &index)
 void OpenFile::addedNewTree(QFileSystemModel * tDir, const QModelIndex index)
 {
     newTree = new QTreeView(this);
+    newTree->setSelectionMode(QAbstractItemView::MultiSelection);
     ui->horizontalLayout->addWidget(newTree,100);
     newTree->setModel(tDir);
     newTree->setRootIndex(index);
@@ -82,11 +83,13 @@ void OpenFile::on_clicked(const QModelIndex &index)
          ui->widget->setAutoFillBackground(true);
          ui->widget->setFixedSize(imgPreview.width(), imgPreview.height());
          dir->setPath(fpath);
+
+         imageList.append(fpath+fname);
     }
 }
 
 void OpenFile::on_open_clicked()
 {
-    if (!fname.isEmpty())
+    if (!imageList.isEmpty())
         close();
 }

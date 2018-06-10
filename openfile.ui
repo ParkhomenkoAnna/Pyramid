@@ -57,6 +57,12 @@
        <property name="lineWidth">
         <number>0</number>
        </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::MultiSelection</enum>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectItems</enum>
+       </property>
        <property name="batchSize">
         <number>70</number>
        </property>
