@@ -22,15 +22,16 @@ public:
     QComboBox * imageLayerBox, *imageListBox;
     QLineEdit *rateEdit;
     Painter *painter;
-    QList <QPixmap> layerList, imageList;
+    QList <QPixmap> imageList;
     int current;
 
 private:
     Ui::MainWindow *ui;
+
     void createMenu();
     void setupWidgets();
     void setImage(QPixmap);
-    void creatingPyramid(QPixmap );
+    void creatingLayer(QPixmap);
 
 private slots:
     void setRate();

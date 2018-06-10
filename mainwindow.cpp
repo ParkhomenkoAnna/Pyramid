@@ -10,6 +10,7 @@
 #include <QWidget>
 #include <QLineEdit>
 
+//сортировка списка изображений
 template<typename T> bool sortImages (const QString& x, const QString& y)
 {
     //Расчет диагонали
@@ -33,21 +34,12 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setMinimumSize(580,600);
     this->setWindowTitle("Pyramid");
 
+    //Слоты для выбора слоев/изображений из списка; Установка коэффициента уменьшения
     connect(imageLayerBox, SIGNAL(activated(int)), this, SLOT(showLayer(int)));
     connect(imageListBox, SIGNAL(activated(int)), this, SLOT(showImage(int)));
     connect(rateEdit, SIGNAL(returnPressed()), this, SLOT(setRate()));
 }
 
-void MainWindow::setRate()
-{
-    QRegExp exp("([0-9\\.]*[0-9])+");
-    if (exp.exactMatch(rateEdit->text()) && rateEdit->text().toDouble() > 1.5 && rateEdit->text().toDouble() < 100)
-    {
-        rate = rateEdit->text().toDouble();
-        if (!imageList.isEmpty())
-            setImage(imageList.at(current));
-    }
-}
 
 void MainWindow::setupWidgets()
 {
@@ -64,7 +56,6 @@ void MainWindow::setupWidgets()
     scrollArea->setBackgroundRole(QPalette::Dark);
     scrollArea->setAlignment(Qt::AlignCenter);
     scrollArea->setWidget(painter);
-
 
     rateEdit = new QLineEdit();
     rateEdit->setFixedSize(100,20);
@@ -102,9 +93,8 @@ void MainWindow::openImages()
     QStringList lst = open.imageList;
     qSort(lst.begin(), lst.end(), sortImages<QString>);
     for (int i=0; i< lst.length(); i++)
-    {
         imageList.append(QPixmap(lst.at(i)));
-    }
+
     imageListBox->addItems(lst);
     imageListBox->show();
 
@@ -119,22 +109,20 @@ void MainWindow::setImage( QPixmap pixmap)
     painter->size = pixmap.size();
     painter->repaint();
 
-    // Очистка списков Pixmap и виджетов QComboBox от предыдущих значений
+    // Очистка QComboBox от предыдущих значений
     imageLayerBox->clear();
-    layerList.clear();
 
     // Построение пирамиды изображений
-    creatingPyramid(pixmap);
+    creatingLayer(pixmap);
 }
 
-void MainWindow::creatingPyramid(QPixmap pixmap)
+void MainWindow::creatingLayer(QPixmap pixmap)
 {
     QStringList sizeList;
     QSize size = pixmap.size();
     do
     {
-        layerList.append(pixmap.scaled(size));
-        sizeList.append("Layer "+QString::number(layerList.length()).toUtf8()+": "+QString::number(size.height()).toUtf8()+"x"+QString::number(size.width()).toUtf8());
+        sizeList.append("Layer "+QString::number(sizeList.length()).toUtf8()+": "+QString::number(size.height()).toUtf8()+"x"+QString::number(size.width()).toUtf8());
         size  /= rate;
     }
     while (size.width() > 1 || size.height() > 1);
@@ -144,15 +132,30 @@ void MainWindow::creatingPyramid(QPixmap pixmap)
 
 void MainWindow::showLayer(int index)
 {
-   painter->pixmap = layerList.at(index);
-   painter->size = layerList.first().size();
-   painter->repaint();
+    QPixmap pixmap(imageList.at(current));
+    painter->pixmap = pixmap.scaled(imageList.at(current).size()/(pow(rate,index)));
+    painter->size = imageList.at(current).size();
+
+    painter->repaint();
 }
 
 void MainWindow::showImage(int index)
 {
     current = index;
     setImage(imageList.at(current));
+}
+
+void MainWindow::setRate()
+{
+    //валидация полученного значения
+    QRegExp exp("([0-9\\.]*[0-9])+");
+    if (exp.exactMatch(rateEdit->text()) && rateEdit->text().toDouble() > 1.5 && rateEdit->text().toDouble() < 100)
+    {
+        // установка полученного коэффициента и перерасчет слоев
+        rate = rateEdit->text().toDouble();
+        if (!imageList.isEmpty())
+            setImage(imageList.at(current));
+    }
 }
 
 MainWindow::~MainWindow()
