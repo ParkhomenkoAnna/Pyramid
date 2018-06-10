@@ -2,13 +2,13 @@
 #include "ui_mainwindow.h"
 #include <QPainter>
 #include <QVBoxLayout>
-#include <QLabel>
 #include <QScrollArea>
 #include <openfile.h>
 #include <QDebug>
-#include <QComboBox>
 #include <QList>
 #include <math.h>
+#include <QWidget>
+#include <QLineEdit>
 
 template<typename T> bool sortImages (const QString& x, const QString& y)
 {
@@ -28,35 +28,56 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     createMenu();
-
-    imageLayerBox = new QComboBox;
-    imageListBox = new QComboBox;
-    imageLayerBox->hide();
-    imageListBox->hide();
-
-    QVBoxLayout * vlayout = new QVBoxLayout;
-    QHBoxLayout *hlayout = new QHBoxLayout;
-
-    QScrollArea * scrollArea = new QScrollArea;
-    painter = new Painter();
-    painter->repaint();
-
-    scrollArea->setBackgroundRole(QPalette::Dark);
-    scrollArea->setAlignment(Qt::AlignCenter);
-    scrollArea->setWidget(painter);
-
-    hlayout->addWidget(imageListBox);
-    hlayout->addWidget(imageLayerBox);
-
-    vlayout->addLayout(hlayout);
-    vlayout->addWidget(scrollArea);
-    ui->centralWidget->setLayout(vlayout);
+    setupWidgets();
 
     this->setMinimumSize(580,600);
     this->setWindowTitle("Pyramid");
 
     connect(imageLayerBox, SIGNAL(activated(int)), this, SLOT(showLayer(int)));
     connect(imageListBox, SIGNAL(activated(int)), this, SLOT(showImage(int)));
+    connect(rateEdit, SIGNAL(returnPressed()), this, SLOT(setRate()));
+}
+
+void MainWindow::setRate()
+{
+    QRegExp exp("([0-9\\.]*[0-9])+");
+    if (exp.exactMatch(rateEdit->text()) && rateEdit->text().toDouble() > 1.5 && rateEdit->text().toDouble() < 100)
+    {
+        rate = rateEdit->text().toDouble();
+        if (!imageList.isEmpty())
+            setImage(imageList.at(current));
+    }
+}
+
+void MainWindow::setupWidgets()
+{
+    QVBoxLayout * vlayout = new QVBoxLayout;
+    QHBoxLayout *hlayout = new QHBoxLayout;
+
+    imageLayerBox = new QComboBox;
+    imageListBox = new QComboBox;
+
+    painter = new Painter();
+    painter->repaint();
+
+    QScrollArea * scrollArea = new QScrollArea;
+    scrollArea->setBackgroundRole(QPalette::Dark);
+    scrollArea->setAlignment(Qt::AlignCenter);
+    scrollArea->setWidget(painter);
+
+
+    rateEdit = new QLineEdit();
+    rateEdit->setFixedSize(100,20);
+    rateEdit->setToolTip("From 1.5 to 100");
+    rateEdit->setText("Rate");
+
+    hlayout->addWidget(imageListBox);
+    hlayout->addWidget(imageLayerBox);
+    hlayout->addWidget(rateEdit);
+
+    vlayout->addLayout(hlayout);
+    vlayout->addWidget(scrollArea);
+    ui->centralWidget->setLayout(vlayout);
 }
 
 void MainWindow::createMenu()
@@ -88,7 +109,8 @@ void MainWindow::openImages()
     imageListBox->show();
 
     this->setWindowTitle("Pyramid - " + lst.first());
-    setImage(imageList.first());
+    current = 0;
+    setImage(imageList.at(current));
 }
 
 void MainWindow::setImage( QPixmap pixmap)
@@ -113,7 +135,7 @@ void MainWindow::creatingPyramid(QPixmap pixmap)
     {
         layerList.append(pixmap.scaled(size));
         sizeList.append("Layer "+QString::number(layerList.length()).toUtf8()+": "+QString::number(size.height()).toUtf8()+"x"+QString::number(size.width()).toUtf8());
-        size  /= 2;
+        size  /= rate;
     }
     while (size.width() > 1 || size.height() > 1);
     imageLayerBox->addItems(sizeList);
@@ -129,11 +151,11 @@ void MainWindow::showLayer(int index)
 
 void MainWindow::showImage(int index)
 {
-    setImage(imageList.at(index));
+    current = index;
+    setImage(imageList.at(current));
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
 }
-

@@ -4,7 +4,6 @@
 #include <QMainWindow>
 #include <openfile.h>
 #include <QPixmap>
-#include <QLabel>
 #include <QComboBox>
 #include <painter.h>
 
@@ -21,16 +20,20 @@ public:
     ~MainWindow();
     float rate;
     QComboBox * imageLayerBox, *imageListBox;
+    QLineEdit *rateEdit;
     Painter *painter;
     QList <QPixmap> layerList, imageList;
+    int current;
 
 private:
     Ui::MainWindow *ui;
     void createMenu();
+    void setupWidgets();
     void setImage(QPixmap);
     void creatingPyramid(QPixmap );
 
 private slots:
+    void setRate();
     void openImages();
     void showLayer(int);
     void showImage(int);
