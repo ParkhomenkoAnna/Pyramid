@@ -5,6 +5,8 @@
 #include <openfile.h>
 #include <QPixmap>
 #include <QLabel>
+#include <QComboBox>
+#include <painter.h>
 
 namespace Ui {
 class MainWindow;
@@ -18,19 +20,21 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     QString imagePath, imageName;
-    QPixmap *pixmap;
-    QLabel *imageLabel;
+    float rate;
+    QComboBox * imgLayer;
+    Painter *painter;
+    QList <QPixmap> pixmapList;
 
 private:
     Ui::MainWindow *ui;
-    void createMenus();
-    QPixmap getPixmap();
-    QPainter * painter;
-    void setImage(QString path, QString name);
+    void createMenu();
+    void setImage(QString, QString);
 
+    void creatingPyramid(QPixmap );
 
 private slots:
     void open();
+    void show_layer(int);
 };
 
 #endif // MAINWINDOW_H

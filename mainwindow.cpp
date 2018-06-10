@@ -6,33 +6,44 @@
 #include <QScrollArea>
 #include <openfile.h>
 #include <QDebug>
+#include <QComboBox>
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    rate = 2;
     setWindowTitle("Image Viewer");
     ui->setupUi(this);
 
-    createMenus();
-    QScrollArea * scrollArea= new QScrollArea;
-    imageLabel = new QLabel;
-    imageLabel->setMinimumSize(500,500);
-    imageLabel->setScaledContents(true);
-    imageLabel->setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
+    createMenu();
+
+    imgLayer = new QComboBox;
+    imgLayer->hide();
+
+    QVBoxLayout * vlayout = new QVBoxLayout;
+
+
+    QScrollArea * scrollArea = new QScrollArea;
+    painter = new Painter();
+    painter->setMinimumSize(500,500);
+
     scrollArea->setBackgroundRole(QPalette::Dark);
     scrollArea->setAlignment(Qt::AlignCenter);
-    scrollArea->setWidget(imageLabel);
-    imageLabel->setPixmap(getPixmap());
+    scrollArea->setWidget(painter);
 
+    vlayout->addWidget(imgLayer);
+    vlayout->addWidget(scrollArea);
+    ui->centralWidget->setLayout(vlayout);
 
-    setCentralWidget(scrollArea);
-    this->setMinimumSize(540,540);
+    this->setMinimumSize(580,600);
     this->setWindowTitle("Pyramid");
 
+    connect(imgLayer, SIGNAL(activated(int)), this, SLOT(show_layer(int)));
 }
 
-void MainWindow::createMenus()
+void MainWindow::createMenu()
 {
     QMenu *menu = new QMenu("&File");
     QAction *openImg = new QAction("Open image", menu);
@@ -41,17 +52,12 @@ void MainWindow::createMenus()
     connect(openImg, SIGNAL(triggered()), this, SLOT(open()));
 }
 
-QPixmap MainWindow::getPixmap()
+void MainWindow::show_layer(int index)
 {
-
-    pixmap = new QPixmap(500,500);
-    painter = new QPainter;
-    painter->begin(pixmap);
-    painter->drawRect(0,0,500,500);
-    painter->fillRect(0,0,500,500,QBrush(Qt::white));
-    painter->end();
-    return *pixmap;
+   painter->pixmap = pixmapList.at(index);
+   painter->update();
 }
+
 
 void MainWindow::open()
 {
@@ -60,20 +66,39 @@ void MainWindow::open()
     open.exec();
     if (!open.fname.isEmpty() && !open.fpath.isEmpty())
     {
-       imagePath = open.fpath;
-       imageName = open.fname;
-       setImage(imagePath,imageName);
+       setImage( open.fpath, open.fname);
     }
 }
 
 void MainWindow::setImage(QString path, QString name)
 {
     this->setWindowTitle("Pyramid - " + name);
-    pixmap->load(path+name);
-    imageLabel->resize(pixmap->size());
-    imageLabel->setPixmap(*pixmap);
+    QPixmap pixmap(path+name);
+    painter->pixmap = pixmap;
+
+    // очистка списка Pixmap от предыдущих изображений и очистка виджета QComboBox
+    imgLayer->clear();
+    pixmapList.clear();
+
+    // построение новой пирамиды изображений
+    creatingPyramid(pixmap);
 }
 
+
+void MainWindow::creatingPyramid(QPixmap pixmap)
+{
+    QStringList sizeList;
+    QSize size = pixmap.size();
+    do
+    {
+        pixmapList.append(pixmap.scaled(size));
+        sizeList.append(QString::number(size.height()).toUtf8()+"x"+QString::number(size.width()).toUtf8());
+        size  /= 2;
+    }
+    while (size.width() > 1 || size.height() > 1);
+    imgLayer->addItems(sizeList);
+    imgLayer->show();
+}
 
 MainWindow::~MainWindow()
 {

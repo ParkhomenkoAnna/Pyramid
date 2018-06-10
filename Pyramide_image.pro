@@ -26,11 +26,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    openfile.cpp
+    openfile.cpp \
+    painter.cpp
 
 HEADERS += \
         mainwindow.h \
-    openfile.h
+    openfile.h \
+    painter.h
 
 FORMS += \
         mainwindow.ui \
