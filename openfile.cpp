@@ -52,7 +52,7 @@ void OpenFile::addedNewTree(QFileSystemModel * tDir, const QModelIndex index)
 
 void OpenFile::on_clicked(const QModelIndex &index)
 {
-    QRegExp exp("([a-zA-Z0-9_ \\#\\:\\-\\.\\C\\)\\+ ])+\\.(JPG|png|jpg|gif|jpeg)");
+    QRegExp exp("([a-zA-Z0-9_ \\#\\:\\-\\.\\+)() ])+\\.(JPG|png|jpg|gif|jpeg)");
     dir = new QDir();
     tDir->filePath(index);
     QString name = tDir->fileInfo(index).fileName();
