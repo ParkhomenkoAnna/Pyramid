@@ -27,13 +27,16 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     openfile.cpp \
-    painter.cpp
+    painter.cpp \
+    about.cpp
 
 HEADERS += \
         mainwindow.h \
     openfile.h \
-    painter.h
+    painter.h \
+    about.h
 
 FORMS += \
         mainwindow.ui \
-    openfile.ui
+    openfile.ui \
+    about.ui

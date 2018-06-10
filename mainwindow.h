@@ -3,6 +3,7 @@
 
 #include <openfile.h>
 #include <painter.h>
+#include <about.h>
 
 #include <QMainWindow>
 #include <QPixmap>
@@ -48,6 +49,8 @@ private:
     void creatingLayer(QPixmap);
 
 private slots:
+
+    void about();
     void setRate();
     void getImages();
     void openImages(QStringList);

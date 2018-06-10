@@ -69,7 +69,14 @@ void MainWindow::setupMenu()
     QAction *openImg = new QAction("Open image", menu);
     menu->addAction(openImg);
     ui->menuBar->addMenu(menu);
+
+    QMenu *help = new QMenu("&Help");
+    QAction *openAbout = new QAction("About", help);
+    help->addAction(openAbout);
+    ui->menuBar->addMenu(help);
+
     connect(openImg, SIGNAL(triggered()), this, SLOT(getImages()));
+    connect(openAbout, SIGNAL(triggered()), this, SLOT(about()));
 }
 
 void MainWindow::setupOptions(QStringList arguments)
@@ -178,6 +185,13 @@ void MainWindow::setRate()
         if (!imageList.isEmpty())
             setImage(imageList.at(current));
     }
+}
+
+void MainWindow::about()
+{
+    About aboutWidget;
+    aboutWidget.setWindowFlags(Qt::WindowFullscreenButtonHint);
+    aboutWidget.exec();
 }
 
 MainWindow::~MainWindow()
