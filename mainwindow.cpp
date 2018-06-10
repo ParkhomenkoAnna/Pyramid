@@ -27,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QScrollArea * scrollArea = new QScrollArea;
     painter = new Painter();
-    painter->setMinimumSize(500,500);
+    painter->repaint();
 
     scrollArea->setBackgroundRole(QPalette::Dark);
     scrollArea->setAlignment(Qt::AlignCenter);
@@ -41,6 +41,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setWindowTitle("Pyramid");
 
     connect(imgLayer, SIGNAL(activated(int)), this, SLOT(show_layer(int)));
+
 }
 
 void MainWindow::createMenu()
@@ -52,13 +53,6 @@ void MainWindow::createMenu()
     connect(openImg, SIGNAL(triggered()), this, SLOT(open()));
 }
 
-void MainWindow::show_layer(int index)
-{
-   painter->pixmap = pixmapList.at(index);
-   painter->update();
-}
-
-
 void MainWindow::open()
 {
     OpenFile open;
@@ -66,7 +60,7 @@ void MainWindow::open()
     open.exec();
     if (!open.fname.isEmpty() && !open.fpath.isEmpty())
     {
-       setImage( open.fpath, open.fname);
+       setImage(open.fpath, open.fname);
     }
 }
 
@@ -75,6 +69,7 @@ void MainWindow::setImage(QString path, QString name)
     this->setWindowTitle("Pyramid - " + name);
     QPixmap pixmap(path+name);
     painter->pixmap = pixmap;
+    painter->size = pixmap.size();
 
     // очистка списка Pixmap от предыдущих изображений и очистка виджета QComboBox
     imgLayer->clear();
@@ -92,13 +87,22 @@ void MainWindow::creatingPyramid(QPixmap pixmap)
     do
     {
         pixmapList.append(pixmap.scaled(size));
-        sizeList.append(QString::number(size.height()).toUtf8()+"x"+QString::number(size.width()).toUtf8());
+        sizeList.append("Layer "+QString::number(pixmapList.length()).toUtf8()+": "+QString::number(size.height()).toUtf8()+"x"+QString::number(size.width()).toUtf8());
         size  /= 2;
     }
     while (size.width() > 1 || size.height() > 1);
     imgLayer->addItems(sizeList);
     imgLayer->show();
 }
+
+
+void MainWindow::show_layer(int index)
+{
+   painter->pixmap = pixmapList.at(index);
+   painter->size = pixmapList.first().size();
+   painter->repaint();
+}
+
 
 MainWindow::~MainWindow()
 {

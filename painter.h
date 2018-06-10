@@ -13,10 +13,10 @@ class Painter : public QWidget
 public:
     explicit Painter(QWidget *parent = 0);
    ~Painter();
+
     QPixmap  pixmap;
+    QSize size;
 
-
-private:
 protected:
     virtual void paintEvent(QPaintEvent *);
 };
