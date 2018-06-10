@@ -7,7 +7,17 @@
 #include <openfile.h>
 #include <QDebug>
 #include <QComboBox>
+#include <QList>
+#include <math.h>
 
+template<typename T> bool sortImages (const QString& x, const QString& y)
+{
+    //Расчет диагонали
+    QPixmap tmp1(x), tmp2(y);
+    double diagonal1 = sqrt(pow(tmp1.height(),2) + pow(tmp1.width(),2));
+    double diagonal2 = sqrt(pow(tmp2.height(),2) + pow(tmp2.width(),2));
+    return ( sqrt(diagonal1) < sqrt (diagonal2));
+}
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -19,11 +29,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     createMenu();
 
-    imgLayer = new QComboBox;
-    imgLayer->hide();
+    imageLayerBox = new QComboBox;
+    imageListBox = new QComboBox;
+    imageLayerBox->hide();
+    imageListBox->hide();
 
     QVBoxLayout * vlayout = new QVBoxLayout;
-
+    QHBoxLayout *hlayout = new QHBoxLayout;
 
     QScrollArea * scrollArea = new QScrollArea;
     painter = new Painter();
@@ -33,15 +45,18 @@ MainWindow::MainWindow(QWidget *parent) :
     scrollArea->setAlignment(Qt::AlignCenter);
     scrollArea->setWidget(painter);
 
-    vlayout->addWidget(imgLayer);
+    hlayout->addWidget(imageListBox);
+    hlayout->addWidget(imageLayerBox);
+
+    vlayout->addLayout(hlayout);
     vlayout->addWidget(scrollArea);
     ui->centralWidget->setLayout(vlayout);
 
     this->setMinimumSize(580,600);
     this->setWindowTitle("Pyramid");
 
-    connect(imgLayer, SIGNAL(activated(int)), this, SLOT(show_layer(int)));
-
+    connect(imageLayerBox, SIGNAL(activated(int)), this, SLOT(showLayer(int)));
+    connect(imageListBox, SIGNAL(activated(int)), this, SLOT(showImage(int)));
 }
 
 void MainWindow::createMenu()
@@ -50,35 +65,45 @@ void MainWindow::createMenu()
     QAction *openImg = new QAction("Open image", menu);
     menu->addAction(openImg);
     ui->menuBar->addMenu(menu);
-    connect(openImg, SIGNAL(triggered()), this, SLOT(open()));
+    connect(openImg, SIGNAL(triggered()), this, SLOT(openImages()));
 }
 
-void MainWindow::open()
+void MainWindow::openImages()
 {
     OpenFile open;
     open.setWindowFlags(Qt::WindowFullscreenButtonHint);
     open.exec();
-    if (!open.fname.isEmpty() && !open.fpath.isEmpty())
+
+   // Очистка списков Pixmap и виджетов QComboBox от предыдущих значений
+    imageListBox->clear();
+    imageList.clear();
+
+    QStringList lst = open.imageList;
+    qSort(lst.begin(), lst.end(), sortImages<QString>);
+    for (int i=0; i< lst.length(); i++)
     {
-       setImage(open.fpath, open.fname);
+        imageList.append(QPixmap(lst.at(i)));
     }
+    imageListBox->addItems(lst);
+    imageListBox->show();
+
+    this->setWindowTitle("Pyramid - " + lst.first());
+    setImage(imageList.first());
 }
 
-void MainWindow::setImage(QString path, QString name)
+void MainWindow::setImage( QPixmap pixmap)
 {
-    this->setWindowTitle("Pyramid - " + name);
-    QPixmap pixmap(path+name);
     painter->pixmap = pixmap;
     painter->size = pixmap.size();
+    painter->repaint();
 
-    // очистка списка Pixmap от предыдущих изображений и очистка виджета QComboBox
-    imgLayer->clear();
-    pixmapList.clear();
+    // Очистка списков Pixmap и виджетов QComboBox от предыдущих значений
+    imageLayerBox->clear();
+    layerList.clear();
 
-    // построение новой пирамиды изображений
+    // Построение пирамиды изображений
     creatingPyramid(pixmap);
 }
-
 
 void MainWindow::creatingPyramid(QPixmap pixmap)
 {
@@ -86,25 +111,29 @@ void MainWindow::creatingPyramid(QPixmap pixmap)
     QSize size = pixmap.size();
     do
     {
-        pixmapList.append(pixmap.scaled(size));
-        sizeList.append("Layer "+QString::number(pixmapList.length()).toUtf8()+": "+QString::number(size.height()).toUtf8()+"x"+QString::number(size.width()).toUtf8());
+        layerList.append(pixmap.scaled(size));
+        sizeList.append("Layer "+QString::number(layerList.length()).toUtf8()+": "+QString::number(size.height()).toUtf8()+"x"+QString::number(size.width()).toUtf8());
         size  /= 2;
     }
     while (size.width() > 1 || size.height() > 1);
-    imgLayer->addItems(sizeList);
-    imgLayer->show();
+    imageLayerBox->addItems(sizeList);
+    imageLayerBox->show();
 }
 
-
-void MainWindow::show_layer(int index)
+void MainWindow::showLayer(int index)
 {
-   painter->pixmap = pixmapList.at(index);
-   painter->size = pixmapList.first().size();
+   painter->pixmap = layerList.at(index);
+   painter->size = layerList.first().size();
    painter->repaint();
 }
 
+void MainWindow::showImage(int index)
+{
+    setImage(imageList.at(index));
+}
 
 MainWindow::~MainWindow()
 {
     delete ui;
 }
+

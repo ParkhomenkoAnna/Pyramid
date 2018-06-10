@@ -19,22 +19,21 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    QString imagePath, imageName;
     float rate;
-    QComboBox * imgLayer;
+    QComboBox * imageLayerBox, *imageListBox;
     Painter *painter;
-    QList <QPixmap> pixmapList;
+    QList <QPixmap> layerList, imageList;
 
 private:
     Ui::MainWindow *ui;
     void createMenu();
-    void setImage(QString, QString);
-
+    void setImage(QPixmap);
     void creatingPyramid(QPixmap );
 
 private slots:
-    void open();
-    void show_layer(int);
+    void openImages();
+    void showLayer(int);
+    void showImage(int);
 };
 
 #endif // MAINWINDOW_H
