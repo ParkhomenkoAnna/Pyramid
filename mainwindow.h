@@ -1,11 +1,23 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
 #include <openfile.h>
-#include <QPixmap>
-#include <QComboBox>
 #include <painter.h>
+
+#include <QMainWindow>
+#include <QPixmap>
+#include <QPainter>
+#include <QComboBox>
+#include <QVBoxLayout>
+#include <QScrollArea>
+#include <openfile.h>
+#include <QDebug>
+#include <QList>
+#include <math.h>
+#include <QLineEdit>
+
+#include <QCommandLineParser>
+#include <QCommandLineOption>
 
 namespace Ui {
 class MainWindow;
@@ -16,7 +28,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QStringList, QWidget *parent = 0);
     ~MainWindow();
     float rate;
     QComboBox * imageLayerBox, *imageListBox;
@@ -28,14 +40,17 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    void createMenu();
+    void setupMenu();
     void setupWidgets();
+    void setupOptions(QStringList );
+
     void setImage(QPixmap);
     void creatingLayer(QPixmap);
 
 private slots:
     void setRate();
-    void openImages();
+    void getImages();
+    void openImages(QStringList);
     void showLayer(int);
     void showImage(int);
 };

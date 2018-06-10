@@ -1,14 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QPainter>
-#include <QVBoxLayout>
-#include <QScrollArea>
-#include <openfile.h>
-#include <QDebug>
-#include <QList>
-#include <math.h>
-#include <QWidget>
-#include <QLineEdit>
 
 //сортировка списка изображений
 template<typename T> bool sortImages (const QString& x, const QString& y)
@@ -20,16 +11,18 @@ template<typename T> bool sortImages (const QString& x, const QString& y)
     return ( sqrt(diagonal1) < sqrt (diagonal2));
 }
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(QStringList arguments, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    rate = 2;
     setWindowTitle("Image Viewer");
     ui->setupUi(this);
 
-    createMenu();
+
     setupWidgets();
+    setupOptions(arguments);
+    setupMenu();
+
 
     this->setMinimumSize(580,600);
     this->setWindowTitle("Pyramid");
@@ -60,7 +53,6 @@ void MainWindow::setupWidgets()
     rateEdit = new QLineEdit();
     rateEdit->setFixedSize(100,20);
     rateEdit->setToolTip("From 1.5 to 100");
-    rateEdit->setText("Rate");
 
     hlayout->addWidget(imageListBox);
     hlayout->addWidget(imageLayerBox);
@@ -71,16 +63,45 @@ void MainWindow::setupWidgets()
     ui->centralWidget->setLayout(vlayout);
 }
 
-void MainWindow::createMenu()
+void MainWindow::setupMenu()
 {
     QMenu *menu = new QMenu("&File");
     QAction *openImg = new QAction("Open image", menu);
     menu->addAction(openImg);
     ui->menuBar->addMenu(menu);
-    connect(openImg, SIGNAL(triggered()), this, SLOT(openImages()));
+    connect(openImg, SIGNAL(triggered()), this, SLOT(getImages()));
 }
 
-void MainWindow::openImages()
+void MainWindow::setupOptions(QStringList arguments)
+{
+    QCommandLineParser parser;
+
+    QCommandLineOption rateOption("rate", "reduce factor", "rate", "2");
+    QCommandLineOption fileNameOpt("image", "image name for opening", "image name");
+
+    parser.addOption(rateOption);
+    parser.addOption(fileNameOpt);
+
+    parser.parse(arguments);
+
+
+    //обработка передачи параметра
+    if (parser.value(rateOption).toDouble())
+        rate  = parser.value(rateOption).toDouble();
+    else
+        rate = 2;
+    rateEdit->setText(QString::number(rate));
+
+    QRegExp exp("(([a-zA-Z0-9_ \\#\\:\\-\\.\\+)() \\/])+\\.(JPG|png|jpg|gif|jpeg)\\,?)+");
+    QString str = parser.value(fileNameOpt) ;
+    QStringList imagesNames = str.split(",");
+    if (!imagesNames.isEmpty() && exp.exactMatch(str))
+    {
+        openImages(imagesNames);
+    }
+}
+
+void MainWindow::getImages()
 {
     OpenFile open;
     open.setWindowFlags(Qt::WindowFullscreenButtonHint);
@@ -92,25 +113,27 @@ void MainWindow::openImages()
 
     QStringList lst = open.imageList;
     qSort(lst.begin(), lst.end(), sortImages<QString>);
-    for (int i=0; i< lst.length(); i++)
-        imageList.append(QPixmap(lst.at(i)));
 
-    imageListBox->addItems(lst);
-    imageListBox->show();
+    openImages(lst);
+}
 
+void MainWindow::openImages(QStringList lst)
+{
     this->setWindowTitle("Pyramid - " + lst.first());
+    for (int i= 0; i < lst.length(); i++)
+        imageList.append(QPixmap(lst.at(i)));
+    imageListBox->addItems(lst);
     current = 0;
     setImage(imageList.at(current));
 }
 
 void MainWindow::setImage( QPixmap pixmap)
 {
+    // Очистка QComboBox от предыдущих значений
+    imageLayerBox->clear();
     painter->pixmap = pixmap;
     painter->size = pixmap.size();
     painter->repaint();
-
-    // Очистка QComboBox от предыдущих значений
-    imageLayerBox->clear();
 
     // Построение пирамиды изображений
     creatingLayer(pixmap);
@@ -127,7 +150,6 @@ void MainWindow::creatingLayer(QPixmap pixmap)
     }
     while (size.width() > 1 || size.height() > 1);
     imageLayerBox->addItems(sizeList);
-    imageLayerBox->show();
 }
 
 void MainWindow::showLayer(int index)
