@@ -99,7 +99,7 @@ void MainWindow::setupOptions(QStringList arguments)
         rate = 2;
     rateEdit->setText(QString::number(rate));
 
-    QRegExp exp("(([a-zA-Z0-9_ \\#\\:\\-\\.\\+)() \\/])+\\.(JPG|png|jpg|gif|jpeg)\\,?)+");
+    QRegExp exp("(([a-zA-Z0-9_ \\#\\:\\-\\.\\+)() \\/])(\|/)([a-zA-Z0-9_ \\#\\:\\-\\.\\+)() \\/])+\\.(JPG|png|jpg|gif|jpeg)\\,?)+");
     QString str = parser.value(fileNameOpt) ;
     QStringList imagesNames = str.split(",");
     if (!imagesNames.isEmpty() && exp.exactMatch(str))

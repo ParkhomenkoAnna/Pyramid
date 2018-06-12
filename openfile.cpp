@@ -5,17 +5,29 @@
 #include <QFileSystemModel>
 #include <QDebug>
 
+//#ifdef Q_OS_OSX
+//#ifdef Q_OS_WIN
+
+
 OpenFile::OpenFile(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::OpenFile)
 {
+    // Выбор пути для поиска изображений в зависимости от ОС:
+    #ifdef Q_OS_WIN
+      QString path = "c://";
+    #else
+      QString path = "/";
+    #endif
+
+
     ui->setupUi(this);
     this->setWindowTitle("Open image");
     lDir = new QFileSystemModel(this);
     lDir->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
-    lDir->setRootPath("~/");
+    lDir->setRootPath(path);
     ui->listView->setModel(lDir);
-    QModelIndex idx = lDir->index("~/");
+    QModelIndex idx = lDir->index(path);
     ui->listView->setRootIndex(idx);
     ui->widget->hide();
 
@@ -52,7 +64,7 @@ void OpenFile::addedNewTree(QFileSystemModel * tDir, const QModelIndex index)
 
 void OpenFile::on_clicked(const QModelIndex &index)
 {
-    QRegExp exp("([a-zA-Z0-9_ \\#\\:\\-\\.\\+)() ])+\\.(JPG|png|jpg|gif|jpeg)");
+    QRegExp exp("([a-zA-Z0-9_ \\#\\:\\-\\.\\+)()\\/.])+\\.(JPG|png|jpg|gif|jpeg)");
     dir = new QDir();
     tDir->filePath(index);
     QString name = tDir->fileInfo(index).fileName();
